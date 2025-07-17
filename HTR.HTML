@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>身份证生成器</title>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        /* 开屏动画 */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: splashFadeOut 1s ease-in-out forwards;
+            animation-delay: 2s;
+        }
+
+        .splash-logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: #007bff;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: splashZoomIn 1s ease-in-out forwards;
+        }
+
+        @keyframes splashZoomIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes splashFadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        body {
+            background: url('https://picsum.photos/id/1048/1920/1080') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 800px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            opacity: 0;
+            animation: containerFadeIn 1s ease-in-out forwards;
+            animation-delay: 2s;
+        }
+
+        @keyframes containerFadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2d3d;
+        }
+
+        .htr-system {
+            cursor: pointer;
+            color: #007bff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .htr-system:hover {
+            opacity: 0.8;
+        }
+
+        /* 菜单栏 */
+        .menu-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 240px;
+            height: 100vh;
+            background: #fff;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 999;
+        }
+
+        .menu-container.active {
+            transform: translateX(0);
+        }
+
+        .menu-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .menu-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2d3d;
+            margin-bottom: 24px;
+        }
+
+        .menu-items {
+            flex: 1;
+        }
+
+        .menu-item {
+            margin-bottom: 16px;
+            color: #475669;
+        }
+
+        .menu-item span {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #8899a6;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #8899a6;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #1f2d3d;
+        }
+
+        /* 背景图设置 */
+        .bg-upload-section {
+            padding: 16px;
+            border-top: 1px solid #eee;
+        }
+
+        .bg-upload-section h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .bg-upload-btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f5f7fa;
+            border: 1px solid #dfe6ec;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .bg-upload-btn:hover {
+            background: #e4e7ed;
+        }
+
+        .bg-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .bg-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .bg-option.active {
+            border-color: #007bff;
+        }
+
+        /* 地区转换功能 */
+        .area-converter {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f9fafc;
+            border-radius: 4px;
+        }
+
+        .area-converter h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .area-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .area-input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #dfe6ec;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .area-btn {
+            padding: 6px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .area-result {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #007bff;
+        }
+
+        /* 右侧提示框 */
+        .guide-panel {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 240px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            animation: fadeInRight 1s ease-in-out forwards;
+            animation-delay: 3s;
+        }
+
+        @keyframes fadeInRight {
+            to {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        .guide-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .guide-header i {
+            margin-right: 8px;
+        }
+
+        .guide-content {
+            font-size: 14px;
+            color: #475669;
+        }
+
+        .guide-content p {
+            margin-bottom: 8px;
+        }
+
+        .guide-content ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .close-guide {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: #8899a6;
+        }
+
+        /* 内容区样式 */
+        .content {
+            padding: 24px;
+        }
+
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #475669;
+            margin-bottom: 4px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dfe6ec;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #1f2d3d;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: #fff;
+        }
+
+        .btn-default {
+            background: #f5f7fa;
+            color: #475669;
+            border: 1px solid #dfe6ec;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            text-align: center;
+            padding: 24px;
+            border: 1px solid #dfe6ec;
+            border-radius: 8px;
+            background: #f9fcff;
+        }
+
+        .result h3 {
+            font-size: 16px;
+            color: #007bff;
+            margin-bottom: 16px;
+        }
+
+        .result p {
+            margin: 8px 0;
+            color: #475669;
+        }
+
+        #idNumber {
+            font-family: monospace;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <!-- 开屏动画 -->
+    <div class="splash-screen">
+        <div class="splash-logo">HTR</div>
+    </div>
+
+    <!-- 菜单栏 -->
+    <div class="menu-container" id="menuContainer">
+        <div class="close-btn" id="closeMenu">&times;</div>
+        <div class="menu-content">
+            <div class="menu-header">HTR 工具系统</div>
+            
+            <div class="menu-items">
+                <div class="menu-item">
+                    功能 1
+                    <span>正在开发</span>
+                </div>
+                <div class="menu-item">
+                    功能 2
+                    <span>正在开发</span>
+                </div>
+                <div class="menu-item">
+                    功能 3
+                    <span>正在开发</span>
+                </div>
+            </div>
+            
+            <!-- 背景图设置 -->
+            <div class="bg-upload-section">
+                <h4>背景图设置</h4>
+                <label class="bg-upload-btn">
+                    <input type="file" accept="image/*" id="bgUpload" class="hidden">
+                    <i class="fa fa-upload mr-2"></i>上传背景图
+                </label>
+                <div class="bg-options">
+                    <div class="bg-option active" style="background-image: url('https://picsum.photos/id/1048/100/100');" data-url="https://picsum.photos/id/1048/1920/1080"></div>
+                    <div class="bg-option" style="background-image: url('https://picsum.photos/id/1059/100/100');" data-url="https://picsum.photos/id/1059/1920/1080"></div>
+                    <div class="bg-option" style="background-image: url('https://picsum.photos/id/1071/100/100');" data-url="https://picsum.photos/id/1071/1920/1080"></div>
+                </div>
+            </div>
+            
+            <!-- 地区转换功能 -->
+            <div class="area-converter">
+                <h4>地区名称转编码</h4>
+                <div class="area-input-group">
+                    <input type="text" id="areaNameInput" class="area-input" placeholder="输入地区名称">
+                    <button id="convertBtn" class="area-btn">转换</button>
+                </div>
+                <div class="area-result" id="areaResult">
+                    例如：输入"广西南宁" → 450100
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧提示框 -->
+    <div class="guide-panel" id="guidePanel">
+        <div class="close-guide" id="closeGuide">
+            <i class="fa fa-times"></i>
+        </div>
+        <div class="guide-header">
+            <i class="fa fa-info-circle"></i>使用指南
+        </div>
+        <div class="guide-content">
+            <p>点击左上角" HTR 工具系统 "打开菜单，可设置背景图或使用地区转换功能。</p>
+            <h5 style="margin-top: 12px; font-weight: 600;">身份证编码规则：</h5>
+            <ul>
+                <li>前6位：地区编码</li>
+                <li>7-14位：出生日期</li>
+                <li>15-17位：顺序码（奇数为男，偶数为女）</li>
+                <li>第18位：校验码（根据前17位计算）</li>
+            </ul>
+            <h5 style="margin-top: 12px; font-weight: 600;">地区转换功能说明：</h5>
+            <ul>
+                <li>该功能正在完善中，目前支持主要城市和区域</li>
+                <li>建议输入完整名称以提高匹配成功率</li>
+                <li>如匹配失败，请尝试使用更简短的名称</li>
+            </ul>
+            <h5 style="margin-top: 12px; font-weight: 600;">使用提示：</h5>
+            <ul>
+                <li>所有选项均可留空，系统将自动随机生成</li>
+                <li>生成的信息仅供学习测试使用</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <div class="header">
+            <div class="htr-system" id="htrSystem">
+                HTR 工具系统
+            </div>
+            <h1>身份证生成器</h1>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>工具介绍</h2>
+                <p>本工具可生成符合编码规则的虚拟身份证信息，仅供学习测试使用。所有数据均为模拟生成，不对应真实个人信息。</p>
+            </div>
+
+            <div class="section">
+                <h2>生成选项</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="areaCode">地区码 (6位数字)</label>
+                        <input type="text" id="areaCode" placeholder="如：110101">
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDate">出生日期</label>
+                        <input type="date" id="birthDate">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">性别</label>
+                        <select id="gender">
+                            <option value="random">随机</option>
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="generateBtn">生成身份证信息</button>
+            </div>
+
+            <div class="section">
+                <h2>生成结果</h2>
+                <div class="result" id="result">
+                    <h3 id="resultTitle">点击上方按钮生成身份证信息</h3>
+                    <p>身份证号：<span id="idNumber">--</span></p>
+                    <p>地区：<span id="resultArea">--</span></p>
+                    <p>出生日期：<span id="resultBirth">--</span></p>
+                    <p>性别：<span id="resultGender">--</span></p>
+                    <button class="btn btn-default" id="copyBtn" style="margin-top:12px;">复制信息</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 地区码映射表
+        const areaCodes = {
+            "110101": "北京市东城区",
+            "110102": "北京市西城区",
+            "110105": "北京市朝阳区",
+            "110106": "北京市丰台区",
+            "110107": "北京市石景山区",
+            "110108": "北京市海淀区",
+            "120101": "天津市和平区",
+            "120102": "天津市河东区",
+            "120103": "天津市河西区",
+            "120104": "天津市南开区",
+            "120105": "天津市河北区",
+            "120106": "天津市红桥区",
+            "130102": "河北省石家庄市长安区",
+            "130103": "河北省石家庄市桥西区",
+            "130104": "河北省石家庄市新华区",
+            "130105": "河北省石家庄市裕华区",
+            "130107": "河北省石家庄市井陉矿区",
+            "140105": "山西省太原市小店区",
+            "140106": "山西省太原市迎泽区",
+            "140107": "山西省太原市杏花岭区",
+            "140108": "山西省太原市尖草坪区",
+            "140109": "山西省太原市万柏林区",
+            "140110": "山西省太原市晋源区",
+            "150102": "内蒙古自治区呼和浩特市新城区",
+            "150103": "内蒙古自治区呼和浩特市回民区",
+            "150104": "内蒙古自治区呼和浩特市玉泉区",
+            "150105": "内蒙古自治区呼和浩特市赛罕区",
+            "210102": "辽宁省沈阳市和平区",
+            "210103": "辽宁省沈阳市沈河区",
+            "210104": "辽宁省沈阳市大东区",
+            "210105": "辽宁省沈阳市皇姑区",
+            "210106": "辽宁省沈阳市铁西区",
+            "210111": "辽宁省沈阳市苏家屯区",
+            "450100": "广西壮族自治区南宁市",
+            "450101": "广西壮族自治区南宁市市辖区",
+            "450102": "广西壮族自治区南宁市兴宁区",
+            "450103": "广西壮族自治区南宁市青秀区",
+            "450105": "广西壮族自治区南宁市江南区",
+            "450107": "广西壮族自治区南宁市西乡塘区",
+            // 更多地区...
+        };
+
+        // 2. 反向映射：地区名称 → 编码
+        const areaNames = {};
+        Object.keys(areaCodes).forEach(code => {
+            const name = areaCodes[code];
+            areaNames[name] = code; // 完整名称
+            if (name.includes('市')) {
+                const shortName = name.split('市')[0];
+                areaNames[shortName] = code; // 简称
+            }
+            if (name.includes('区')) {
+                const districtName = name.split('市')[1];
+                if (districtName) areaNames[districtName] = code; // 区名
+            }
+        });
+
+        // 3. 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 设置默认日期为18年前
+            const today = new Date();
+            today.setFullYear(today.getFullYear() - 18);
+            document.getElementById('birthDate').valueAsDate = today;
+            
+            // 随机生成一个地区码作为示例
+            const areaCodesList = Object.keys(areaCodes);
+            const randomAreaCode = areaCodesList[Math.floor(Math.random() * areaCodesList.length)];
+            document.getElementById('areaCode').value = randomAreaCode;
+            
+            // 初始化地区转换功能
+            initAreaConverter();
+        });
+
+        // 4. 菜单栏交互
+        const htrSystem = document.getElementById('htrSystem');
+        const menuContainer = document.getElementById('menuContainer');
+        const closeMenu = document.getElementById('closeMenu');
+
+        htrSystem.addEventListener('click', () => {
+            menuContainer.classList.add('active');
+        });
+
+        closeMenu.addEventListener('click', () => {
+            menuContainer.classList.remove('active');
+        });
+
+        // 5. 背景图功能
+        const bgUpload = document.getElementById('bgUpload');
+        const bgOptions = document.querySelectorAll('.bg-option');
+        const body = document.body;
+
+        bgOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                bgOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                body.style.backgroundImage = `url(${option.dataset.url})`;
+            });
+        });
+
+        bgUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                body.style.backgroundImage = `url(${e.target.result})`;
+                bgOptions.forEach(opt => opt.classList.remove('active'));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 6. 地区转换功能初始化
+        function initAreaConverter() {
+            const areaNameInput = document.getElementById('areaNameInput');
+            const convertBtn = document.getElementById('convertBtn');
+            const areaResult = document.getElementById('areaResult');
+
+            convertBtn.addEventListener('click', () => {
+                const areaName = areaNameInput.value.trim();
+                if (!areaName) {
+                    areaResult.textContent = '请输入地区名称';
+                    return;
+                }
+
+                // 精确匹配
+                let matchedCode = areaNames[areaName];
+                
+                // 模糊匹配
+                if (!matchedCode) {
+                    for (const name in areaNames) {
+                        if (name.includes(areaName) || areaName.includes(name)) {
+                            matchedCode = areaNames[name];
+                            break;
+                        }
+                    }
+                }
+
+                if (matchedCode) {
+                    areaResult.textContent = `${areaName} → ${matchedCode}`;
+                    document.getElementById('areaCode').value = matchedCode;
+                } else {
+                    areaResult.textContent = `未找到"${areaName}"的编码，请尝试其他名称`;
+                }
+            });
+
+            // 按Enter键触发转换
+            areaNameInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    convertBtn.click();
+                }
+            });
+        }
+
+        // 7. 身份证生成核心逻辑
+        const generateBtn = document.getElementById('generateBtn');
+        const resultTitle = document.getElementById('resultTitle');
+        const idNumberEl = document.getElementById('idNumber');
+        const resultArea = document.getElementById('resultArea');
+        const resultBirth = document.getElementById('resultBirth');
+        const resultGender = document.getElementById('resultGender');
+        const copyBtn = document.getElementById('copyBtn');
+
+        generateBtn.addEventListener('click', generateIDCard);
+
+        function generateIDCard() {
+            // 获取用户输入
+            const areaCodeInput = document.getElementById('areaCode').value.trim();
+            const birthDateInput = document.getElementById('birthDate').value;
+            const genderInput = document.getElementById('gender').value;
+
+            // 1. 处理地区码
+            let areaCode, areaName;
+            if (areaCodeInput && areaCodes[areaCodeInput]) {
+                areaCode = areaCodeInput;
+                areaName = areaCodes[areaCode];
+            } else {
+                // 随机选择地区码
+                const areaCodesList = Object.keys(areaCodes);
+                areaCode = areaCodesList[Math.floor(Math.random() * areaCodesList.length)];
+                areaName = areaCodes[areaCode];
+            }
+
+            // 2. 处理出生日期
+            let birthDate, birthStr;
+            if (birthDateInput) {
+                birthDate = new Date(birthDateInput);
+                birthStr = formatDateForID(birthDate);
+            } else {
+                // 随机生成18-60岁之间的出生日期
+                const minAge = 18;
+                const maxAge = 60;
+                const today = new Date();
+                const minBirthDate = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
+                const maxBirthDate = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+                
+                // 生成随机日期
+                const timeDiff = maxBirthDate - minBirthDate;
+                const randomTime = minBirthDate.getTime() + Math.random() * timeDiff;
+                birthDate = new Date(randomTime);
+                birthStr = formatDateForID(birthDate);
+            }
+
+            // 3. 处理性别和顺序码
+            let gender, sequenceCode;
+            if (genderInput === 'random') {
+                gender = Math.random() > 0.5 ? '男' : '女';
+            } else {
+                gender = genderInput === 'male' ? '男' : '女';
+            }
+
+            // 生成顺序码（3位数字，奇数为男，偶数为女）
+            if (gender === '男') {
+                sequenceCode = String(Math.floor(Math.random() * 500) * 2 + 1).padStart(3, '0');
+            } else {
+                sequenceCode = String(Math.floor(Math.random() * 500) * 2).padStart(3, '0');
+            }
+
+            // 4. 计算校验码
+            const idPrefix = areaCode + birthStr + sequenceCode;
+            const checkCode = calculateCheckCode(idPrefix);
+            
+            // 5. 完整身份证号
+            const idNumber = idPrefix + checkCode;
+
+            // 6. 更新显示
+            resultTitle.textContent = '身份证信息已生成';
+            idNumberEl.textContent = idNumber;
+            resultArea.textContent = areaName;
+            resultBirth.textContent = formatDateForDisplay(birthDate);
+            resultGender.textContent = gender;
+        }
+
+        // 格式化日期为身份证格式（YYYYMMDD）
+        function formatDateForID(date) {
+            return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        // 格式化日期为显示格式（YYYY年MM月DD日）
+        function formatDateForDisplay(date) {
+            return `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, '0')}月${String(date.getDate()).padStart(2, '0')}日`;
+        }
+
+        // 计算校验码（严格遵循GB 11643-1999标准）
+        function calculateCheckCode(idPrefix) {
+            // 加权因子
+            const factors = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
+            // 校验码对应表
+            const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
+            
+            // 计算总和
+            let sum = 0;
+            for (let i = 0; i < 17; i++) {
+                sum += parseInt(idPrefix[i]) * factors[i];
+            }
+            
+            // 取模计算校验码
+            return checkCodes[sum % 11];
+        }
+
+        // 8. 复制功能
+        copyBtn.addEventListener('click', () => {
+            const text = `身份证号：${idNumberEl.textContent}
+地区：${resultArea.textContent}
+出生日期：${resultBirth.textContent}
+性别：${resultGender.textContent}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                // 显示复制成功提示
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fa fa-check mr-2"></i>已复制';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动复制');
+            });
+        });
+
+        // 9. 关闭提示框
+        const closeGuide = document.getElementById('closeGuide');
+        const guidePanel = document.getElementById('guidePanel');
+
+        closeGuide.addEventListener('click', () => {
+            guidePanel.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
